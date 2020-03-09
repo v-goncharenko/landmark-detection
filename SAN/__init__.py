@@ -1,1 +1,2 @@
-from san_api import SanLandmarkDetector
+from .san_api import SanLandmarkDetector
+
