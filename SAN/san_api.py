@@ -31,7 +31,7 @@ class SanLandmarkDetector(object):
         face = (819.27, 432.15, 971.70, 575.87)
 
         from san_api import SanLandmarkDetector
-        det = SanLandmarkDetector(model_path, device)
+        det = SanLandmarkDetector(model_path)
         locs, scores = det.detect(image_path, face)
         ```
     '''
