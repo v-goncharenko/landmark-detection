@@ -1,6 +1,7 @@
 import sys
 from os import path as osp
 from pathlib import Path
+import warnings
 
 import numpy as np
 import torch
@@ -8,6 +9,7 @@ from PIL import ImageFile, Image
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
+# kinda graceful monkey patch
 # this aims to avoid `sys.path` changing outside this module
 this_dir = osp.dirname(osp.abspath(__file__))
 lib_path = osp.join(this_dir, 'lib')
@@ -46,9 +48,11 @@ class SanLandmarkDetector(object):
             benchmark: to enable cudnn benchmark mode or not
         '''
         self.model_path = model_path
-        if device is None:
-            device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.device = device
+        self.device = device or 'cuda' if torch.cuda.is_available() else 'cpu'
+        if str(self.device) == 'cpu':
+            warnings.warn(
+                'Using CPU calculations which will take a loooong time to evaluate'
+            )
 
         if benchmark:
             torch.backends.cudnn.enabled = True
