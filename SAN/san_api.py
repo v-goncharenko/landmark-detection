@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import torch
 from PIL import ImageFile, Image
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -37,7 +38,8 @@ class SanLandmarkDetector(object):
         locs, scores = det.detect(image_path, face)
         ```
     '''
-    def __init__(self, model_path, device=None, benchmark: bool=True):
+
+    def __init__(self, model_path, device=None, benchmark: bool = True):
         '''
         Args:
             module_path: path to pre-trained model (available to download, see README)
@@ -61,12 +63,14 @@ class SanLandmarkDetector(object):
         snapshot = torch.load(self.model_path, map_location=self.device)
         self.param = snapshot['args']
 
-        self.transform  = transforms.Compose([
-            transforms.PreCrop(self.param.pre_crop_expand),
-            transforms.TrainScale2WH((self.param.crop_width, self.param.crop_height)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.PreCrop(self.param.pre_crop_expand),
+                transforms.TrainScale2WH((self.param.crop_width, self.param.crop_height)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            ]
+        )
 
         self.net = models.__dict__[self.param.arch](self.param.modelconfig, None)
         self.net.train(False).to(self.device)
@@ -97,7 +101,9 @@ class SanLandmarkDetector(object):
         meta = Point_Meta(self.param.num_pts, None, np.array(face), '', 'custom')
         image, meta = self.transform(image, meta)
         temp_save_wh = meta.temp_save_wh
-        cropped_size = torch.IntTensor( [temp_save_wh[1], temp_save_wh[0], temp_save_wh[2], temp_save_wh[3]] )
+        cropped_size = torch.IntTensor(
+            [temp_save_wh[1], temp_save_wh[0], temp_save_wh[2], temp_save_wh[3]]
+        )
 
         # network forward
         with torch.no_grad():
@@ -105,10 +111,23 @@ class SanLandmarkDetector(object):
             _, batch_locs, batch_scos, _ = self.net(inputs)
 
         # obtain the locations on the image in the orignial size
-        np_batch_locs, np_batch_scos, cropped_size = batch_locs.cpu().numpy(), batch_scos.cpu().numpy(), cropped_size.numpy()
-        locations, scores = np_batch_locs[0,:-1,:], np.expand_dims(np_batch_scos[0,:-1], -1)
+        np_batch_locs, np_batch_scos, cropped_size = (
+            batch_locs.cpu().numpy(),
+            batch_scos.cpu().numpy(),
+            cropped_size.numpy(),
+        )
+        locations, scores = (
+            np_batch_locs[0, :-1, :],
+            np.expand_dims(np_batch_scos[0, :-1], -1),
+        )
 
-        scale_h, scale_w = cropped_size[0] * 1. / inputs.size(-2) , cropped_size[1] * 1. / inputs.size(-1)
+        scale_h, scale_w = (
+            cropped_size[0] * 1.0 / inputs.size(-2),
+            cropped_size[1] * 1.0 / inputs.size(-1),
+        )
 
-        locations[:, 0], locations[:, 1] = locations[:, 0] * scale_w + cropped_size[2], locations[:, 1] * scale_h + cropped_size[3]
+        locations[:, 0], locations[:, 1] = (
+            locations[:, 0] * scale_w + cropped_size[2],
+            locations[:, 1] * scale_h + cropped_size[3],
+        )
         return locations.round().astype(np.int), scores
