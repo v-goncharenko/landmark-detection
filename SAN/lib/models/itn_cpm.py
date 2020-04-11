@@ -144,7 +144,7 @@ class ITN_CPM(nn.Module):
 # use vgg16 conv1_1 to conv4_4 as feature extracation        
 model_urls = 'https://download.pytorch.org/models/vgg16-397923af.pth'
 
-def itn_cpm(model_config, cycle_model_path):
+def itn_cpm(model_config, cycle_model_path, progress: bool = True):
   
   print ('Initialize ITN-CPM with configure : {}'.format(model_config))
   model = ITN_CPM(model_config)
@@ -152,7 +152,7 @@ def itn_cpm(model_config, cycle_model_path):
 
   if model_config.pretrained:
     print ('vgg16_base use pre-trained model')
-    weights = model_zoo.load_url(model_urls)
+    weights = model_zoo.load_url(model_urls, progress=progress)
     load_weight_from_dict(model, weights, None, False)
 
   if cycle_model_path:

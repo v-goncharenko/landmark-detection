@@ -72,7 +72,7 @@ class SanLandmarkDetector(object):
             ]
         )
 
-        self.net = models.__dict__[self.param.arch](self.param.modelconfig, None)
+        self.net = models.__dict__[self.param.arch](self.param.modelconfig, None, False)
         self.net.train(False).to(self.device)
 
         weights = models.remove_module_dict(snapshot['state_dict'])
