@@ -38,7 +38,7 @@ def get_parameters(model, bias):
       else:
         yield m.weight
 
-def load_weight_from_dict(model, weight_state_dict, param_pair=None, remove_prefix=True):
+def load_weight_from_dict(model, weight_state_dict, param_pair=None, remove_prefix=True, *, verbose: bool = True):
   if remove_prefix: weight_state_dict = remove_module_dict(weight_state_dict)
   all_parameter = model.state_dict()
   all_weights   = []
@@ -52,8 +52,9 @@ def load_weight_from_dict(model, weight_state_dict, param_pair=None, remove_pref
     else:
       all_weights.append((key, value))
       random_initial_layer.append(key)
-  print ('==>[load_model] finetuned layers : {}'.format(finetuned_layer))
-  print ('==>[load_model] keeped layers : {}'.format(random_initial_layer))
+  if verbose:
+    print ('==>[load_model] finetuned layers : {}'.format(finetuned_layer))
+    print ('==>[load_model] keeped layers : {}'.format(random_initial_layer))
   all_weights = OrderedDict(all_weights)
   model.load_state_dict(all_weights)
 

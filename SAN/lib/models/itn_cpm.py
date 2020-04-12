@@ -146,14 +146,15 @@ model_urls = 'https://download.pytorch.org/models/vgg16-397923af.pth'
 
 def itn_cpm(model_config, cycle_model_path, progress: bool = True):
   
-  print ('Initialize ITN-CPM with configure : {}'.format(model_config))
+  if progress:
+    print ('Initialize ITN-CPM with configure : {}'.format(model_config))
   model = ITN_CPM(model_config)
   model.apply(weights_init_cpm)
 
   if model_config.pretrained:
     print ('vgg16_base use pre-trained model')
     weights = model_zoo.load_url(model_urls, progress=progress)
-    load_weight_from_dict(model, weights, None, False)
+    load_weight_from_dict(model, weights, None, False, verbose=progress)
 
   if cycle_model_path:
     load_network(cycle_model_path, 'G_A', model.netG_A)
